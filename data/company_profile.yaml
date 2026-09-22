@@ -1,0 +1,11 @@
+# Demo bidder profile — replace with your own. Amounts in INR.
+name: Demo AquaTech Engineering Pvt Ltd
+avg_annual_turnover_inr: 750000000      # ₹75 Cr (average of last 3 FYs)
+years_in_business: 15
+certifications: [ISO 9001:2015, ISO 14001:2015, ISO 45001:2018]
+capabilities: [ETP, WTP, STP, ZLD, RO, UF, DM plant]
+max_emd_inr: 5000000                    # max EMD we are willing to block (₹50 Lakh)
+completed_projects:
+  - {title: "2 MLD ZLD system for textile processing cluster", value_inr: 180000000, year: 2023}
+  - {title: "5 MLD STP on EPC basis for municipal corporation", value_inr: 320000000, year: 2022}
+  - {title: "1200 m3/day ETP for pharmaceutical unit", value_inr: 95000000, year: 2024}

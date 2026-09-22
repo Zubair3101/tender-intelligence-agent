@@ -1,0 +1,15 @@
+langgraph>=1.2
+langchain-core>=1.6
+langchain-text-splitters>=1.1
+langchain-groq            # default free LLM
+langchain-google-genai    # optional: Gemini free tier
+qdrant-client>=1.19
+fastembed>=0.8            # local dense/sparse embeddings + reranker (CPU, no torch)
+pymupdf>=1.28
+pydantic-settings>=2.15
+pyyaml
+rapidfuzz
+python-dateutil
+pandas
+openpyxl
+pytest
