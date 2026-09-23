@@ -8,6 +8,7 @@ _UNITS = {"crore": 1e7, "crores": 1e7, "cr": 1e7, "lakh": 1e5, "lakhs": 1e5,
           "lac": 1e5, "lacs": 1e5, "million": 1e6, "mn": 1e6, "thousand": 1e3}
 _AMOUNT = re.compile(r"(\d[\d,]*(?:\.\d+)?)\s*(crores?|cr|lakhs?|lacs?|lac|million|mn|thousand)?\b", re.I)
 _YEARS = re.compile(r"(\d+)\s*\+?\s*(?:years?|yrs?)", re.I)
+_PCT = re.compile(r"(\d+(?:\.\d+)?)\s*(?:%|per\s*cent)", re.I)
 
 
 def parse_inr(text: str | None) -> float | None:
@@ -19,6 +20,14 @@ def parse_inr(text: str | None) -> float | None:
         return None
     number = float(m.group(1).replace(",", ""))
     return number * _UNITS.get((m.group(2) or "").lower(), 1)
+
+
+def parse_pct(text: str | None) -> float | None:
+    """'not less than 50% value of estimated cost' -> 50.0"""
+    if not text:
+        return None
+    m = _PCT.search(text)
+    return float(m.group(1)) if m else None
 
 
 def parse_years(text: str | None) -> int | None:
@@ -40,4 +49,8 @@ def parse_deadline(text: str | None) -> date | None:
 def fmt_inr(amount: float | None) -> str:
     if amount is None:
         return "n/a"
-    return f"₹{amount / 1e7:.2f} Cr" if amount >= 1e7 else f"₹{amount / 1e5:.2f} Lakh"
+    if amount >= 1e7:
+        return f"₹{amount / 1e7:.2f} Cr"
+    if amount >= 1e5:
+        return f"₹{amount / 1e5:.2f} Lakh"
+    return f"₹{amount:,.0f}"

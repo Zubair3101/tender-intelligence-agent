@@ -4,10 +4,10 @@ from datetime import date
 import yaml
 
 from ..config import settings
-from ..llm import get_llm
+from ..llm import structured
 from ..schemas import CheckResult, SimilarWorkVerdict, Status
 from ..state import TenderState
-from ..utils.parsing import fmt_inr, parse_deadline, parse_inr, parse_years
+from ..utils.parsing import fmt_inr, parse_deadline, parse_inr, parse_years, parse_pct
 
 
 def load_profile(path: str | None = None) -> dict:
@@ -19,14 +19,25 @@ def _val(req: dict, key: str) -> str | None:
     return (req.get(key) or {}).get("value")
 
 
+def _required_amount(text: str | None, req: dict) -> tuple[float | None, str]:
+    """Criteria are often a % of tender value: '50% of estimated cost of work'."""
+    if text and "%" in text:
+        pct, base = parse_pct(text), parse_inr(_val(req, "estimated_value"))
+        if pct and base:
+            return base * pct / 100, f"{pct:g}% of {fmt_inr(base)}"
+        return None, "percentage criterion, tender value unknown"
+    amount = parse_inr(text)
+    return amount, fmt_inr(amount)
+
+
 def check_turnover(req, profile) -> CheckResult:
-    need = parse_inr(_val(req, "min_annual_turnover"))
+    need, basis = _required_amount(_val(req, "min_annual_turnover"), req)
     have = profile["avg_annual_turnover_inr"]
     if need is None:
         return CheckResult(name="turnover", status=Status.UNKNOWN, hard=True, detail="Turnover criterion not found")
     ok = have >= need
     return CheckResult(name="turnover", status=Status.PASS if ok else Status.FAIL, hard=True,
-                       detail=f"Required {fmt_inr(need)}, company has {fmt_inr(have)}")
+                        detail=f"Required {basis}, company has {fmt_inr(have)}")
 
 
 def check_experience(req, profile) -> CheckResult:
@@ -57,12 +68,12 @@ def check_capability(req, profile) -> CheckResult:
 
 
 def check_emd(req, profile) -> CheckResult:
-    emd = parse_inr(_val(req, "emd_amount"))
+    emd, basis = _required_amount(_val(req, "emd_amount"), req)
     if emd is None:
         return CheckResult(name="emd", status=Status.UNKNOWN, hard=False, detail="EMD not found")
     ok = emd <= profile["max_emd_inr"]
     return CheckResult(name="emd", status=Status.PASS if ok else Status.FAIL, hard=False,
-                       detail=f"EMD {fmt_inr(emd)} vs limit {fmt_inr(profile['max_emd_inr'])}")
+                      detail=f"EMD {basis if '%' in basis else fmt_inr(emd)} vs limit {fmt_inr(profile['max_emd_inr'])}")
 
 
 def check_deadline(req, today: date | None = None) -> CheckResult:
@@ -81,11 +92,18 @@ def judge_similar_work(req, profile) -> CheckResult:
     if not criterion:
         return CheckResult(name="similar_work", status=Status.UNKNOWN, hard=True, detail="Similar-work criterion not found")
     projects = "\n".join(f"- {p['title']} | value {fmt_inr(p['value_inr'])} | {p['year']}" for p in profile["completed_projects"])
-    prompt = (f"Tender similar-work criterion:\n{criterion}\n\nCompany's completed projects:\n{projects}\n\n"
+    tender_value = _val(req, "estimated_value") or "not stated"
+    work = _val(req, "scope_of_work") or _val(req, "tender_title") or "not stated"
+    prompt = (f"Tender work: {work}\n\nSimilar-work criterion:\n{criterion}\n\n"
+              f"Estimated tender value: {tender_value}\n\n"
+              f"Company's completed projects:\n{projects}\n\n"
               "Does at least one project satisfy the criterion (type of work AND value)? "
-              "Answer PASS, FAIL, or UNKNOWN if the criterion is ambiguous.")
+              "If the criterion is a percentage of tender value, compute the required amount first. "
+              "Answer PASS if a project clearly satisfies it. Answer FAIL only if the tender explicitly "
+              "defines similar work in a way our projects cannot meet. If the work is in the same domain "
+              "but differs in nature (e.g. new build vs servicing), answer UNKNOWN so a human decides.")
     try:
-        v = get_llm().with_structured_output(SimilarWorkVerdict).invoke(prompt)
+        v = structured(SimilarWorkVerdict, prompt)
         return CheckResult(name="similar_work", status=v.status, hard=True,
                            detail=f"{v.reason} (matched: {v.matched_project or 'none'})")
     except Exception as e:

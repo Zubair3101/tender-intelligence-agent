@@ -1,10 +1,15 @@
 from datetime import date
 
 from tender_agent.agents.eligibility import (check_capability, check_deadline, check_emd,
-                                             check_experience, check_turnover, load_profile)
+                                             check_experience, check_turnover)
 from tender_agent.agents.scoring import score_checks
 
-PROFILE = load_profile("data/company_profile.yaml")
+PROFILE = {
+    "name": "Test Co", "avg_annual_turnover_inr": 750_000_000, "years_in_business": 15,
+    "certifications": ["ISO 9001:2015", "ISO 14001:2015"],
+    "capabilities": ["ETP", "WTP", "STP", "ZLD"], "max_emd_inr": 5_000_000,
+    "completed_projects": [{"title": "2 MLD ZLD system", "value_inr": 180_000_000, "year": 2023}],
+}
 f = lambda v: {"value": v}
 
 

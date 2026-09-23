@@ -8,6 +8,12 @@ from tender_agent.config import settings
 from tender_agent.graph import build_graph
 from tender_agent.schemas import CheckResult, Status
 
+TEST_PROFILE = {
+    "name": "Test Co", "avg_annual_turnover_inr": 750_000_000, "years_in_business": 15,
+    "certifications": ["ISO 9001:2015", "ISO 14001:2015"],
+    "capabilities": ["ETP", "WTP", "STP", "ZLD"], "max_emd_inr": 5_000_000,
+    "completed_projects": [{"title": "2 MLD ZLD system", "value_inr": 180_000_000, "year": 2023}],
+}
 
 class FakeStore:
     def __init__(self):
@@ -40,6 +46,7 @@ def test_full_pipeline(tmp_path, monkeypatch):
     pdf = tmp_path / "t.pdf"
     subprocess.run(["python", "scripts/make_sample_tender.py", str(pdf)], check=True)
     store = FakeStore()
+    monkeypatch.setattr(eligibility, "load_profile", lambda path=None: TEST_PROFILE)
     monkeypatch.setattr(ingest, "get_store", lambda: store)
     monkeypatch.setattr(extraction, "retrieve",
                         lambda q, doc_id: [{"chunk_id": c.id, "page": c.page, "text": c.text, "source": c.source}

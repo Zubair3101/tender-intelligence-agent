@@ -26,8 +26,8 @@ class Settings(BaseSettings):
     # Chunking & retrieval
     chunk_size: int = 800
     chunk_overlap: int = 120
-    top_k_retrieve: int = 20
-    top_k_rerank: int = 5
+    top_k_retrieve: int = 40
+    top_k_rerank: int = 6
 
     # Grounding: min fuzzy match (0-100) between LLM quote and source text
     grounding_threshold: int = 85
