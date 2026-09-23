@@ -12,4 +12,10 @@ rapidfuzz
 python-dateutil
 pandas
 openpyxl
+langsmith                 # tracing (optional)
+fastapi
+uvicorn[standard]
+python-multipart
+streamlit
+requests
 pytest
