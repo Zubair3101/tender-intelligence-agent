@@ -1,0 +1,17 @@
+# Ground truth written by a human after reading each tender.
+# Set a field to null when the tender genuinely does not state it.
+# `page` is optional — include it to also measure citation accuracy.
+- pdf: data/tenders/Tendernotice_1.pdf
+  expected_decision: REVIEW          # your own judgement as a bid professional
+  fields:
+    tender_title: "Overhauling and servicing of Water Treatment Plant (WTP) at IIIT Una"
+    issuing_org: "Indian Institute of Information Technology Una"
+    tender_id: "IIITU/Estate Office/Bid-Invitations/WTP Works/2026/"
+    submission_deadline: "08/10/2026 (04:00 PM)"
+    scope_of_work: "Overhauling and servicing of Water Treatment Plant (WTP)"
+    emd_amount: {value: "2% of estimated cost (Rs 8461)", page: 1}
+    estimated_value: {value: "Rs.4,23,030/-", page: 1}
+    min_annual_turnover: "not less than 50% value of estimated cost of work"
+    min_experience_years: null
+    similar_work_criteria: "three similar works of 40% value or two of 60% or one of 80% of estimated cost"
+    required_certifications: "CA certificate with UDIN, PAN, GST"

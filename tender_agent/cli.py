@@ -1,8 +1,10 @@
 """Run the agent on a tender PDF:  python -m tender_agent.cli data/tenders/sample.pdf"""
 import argparse
 import uuid
+import os
 
 from langgraph.types import Command
+from .observability import run_config, setup_tracing
 
 from .graph import build_graph
 
@@ -15,8 +17,10 @@ def main():
     ap.add_argument("--auto-approve", action="store_true", help="accept the AI decision without prompting")
     args = ap.parse_args()
 
+    if setup_tracing():
+        print("LangSmith tracing: on")
     graph = build_graph()
-    config = {"configurable": {"thread_id": str(uuid.uuid4())}}
+    config = run_config(os.path.basename(args.pdf), str(uuid.uuid4()))
     result = graph.invoke({"pdf_path": args.pdf}, config)
 
     for err in result.get("errors", []):

@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     top_k_retrieve: int = 40
     top_k_rerank: int = 6
 
+    # LangSmith (free developer plan)
+    langsmith_tracing: bool = False
+    langsmith_api_key: str = ""
+    langsmith_project: str = "tender-intelligence-agent"
+
     # Grounding: min fuzzy match (0-100) between LLM quote and source text
     grounding_threshold: int = 85
 
